@@ -1,20 +1,21 @@
-/**
- * Sample React Native App
- * https://github.com/facebook/react-native
- *
- * @format
- * @flow strict-local
- */
-
+import { StatusBar } from 'expo-status-bar';
 import React from 'react';
-import KrasmartConnect from './src/component/KrasmartConnect'
+import { StyleSheet, Text, View } from 'react-native';
+import KrasmartConnect from './src/component/KrasmartConnect';
 
-const App: () => React$Node = () => {
+export default function App() {
   return (
-    <>
+    <View style={styles.container}>
       <KrasmartConnect />
-    </>
+    </View>
   );
-};
+}
 
-export default App;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+});

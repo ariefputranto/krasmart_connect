@@ -1,4 +1,15 @@
 {
   "name": "krasmart_connect",
-  "displayName": "Krasmart Connect"
+  "displayName": "krasmart_connect",
+  "expo": {
+    "name": "krasmart_connect",
+    "slug": "krasmart_connect",
+    "version": "1.0.0",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "useNextNotificationsApi": true,
+    }
+  }
 }

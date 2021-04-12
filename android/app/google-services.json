@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "802926597678",
+    "project_id": "krasmart-connect-54804",
+    "storage_bucket": "krasmart-connect-54804.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:802926597678:android:5472ea224bf5471b5031bf",
+        "android_client_info": {
+          "package_name": "com.krasmartconnect"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "802926597678-vf8fnt9r3qmel23oh070tbfa2m49pmpt.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBINAjMc6642rRpjWFG7jG6R6D6DzjnpJo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "802926597678-vf8fnt9r3qmel23oh070tbfa2m49pmpt.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
