@@ -117,7 +117,7 @@ const KrasmartConnect = () => {
       if (Platform.OS === 'android') {
         var data = response.notification.request.trigger.remoteMessage.data
 
-        console.log('url', decode(data.url))
+        // sanitize url before redirecting
         webViewRef.current.injectJavaScript(`
           window.location.href = "`+ decode(data.url) +`"
         `);
