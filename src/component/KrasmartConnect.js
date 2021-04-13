@@ -5,6 +5,7 @@ import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
 import axios from 'axios'
 import * as SecureStore from 'expo-secure-store';
+import {decode} from 'html-entities';
 
 // configure notification
 Notifications.setNotificationHandler({
@@ -109,11 +110,18 @@ const KrasmartConnect = () => {
 
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
       setNotification(notification);
-      console.log('notification', notification)
     });
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      console.log(response);
+      // add on click redirect into link
+      if (Platform.OS === 'android') {
+        var data = response.notification.request.trigger.remoteMessage.data
+
+        console.log('url', decode(data.url))
+        webViewRef.current.injectJavaScript(`
+          window.location.href = "`+ decode(data.url) +`"
+        `);
+      }
     });
   }
 
