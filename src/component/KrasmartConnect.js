@@ -50,7 +50,7 @@ async function registerForPushNotificationsAsync() {
 }
 
 const KrasmartConnect = () => {
-  const URL = "http://connect.krasmart.com/"
+  const URL = "https://connect.krasmart.com/"
   const [expoPushToken, setExpoPushToken] = useState('');
   const [notification, setNotification] = useState(false);
   const [injectedJs, setInjectedJs] = useState("");
