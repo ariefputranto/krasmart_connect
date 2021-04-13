@@ -55,6 +55,7 @@ const KrasmartConnect = () => {
   const [injectedJs, setInjectedJs] = useState("");
   const notificationListener = useRef();
   const responseListener = useRef();
+  const webViewRef = useRef();
 
   // initialize push notification token
   useEffect(() => {
@@ -78,12 +79,15 @@ const KrasmartConnect = () => {
 
   const removeToken = async () => {
     await SecureStore.deleteItemAsync('token')
+    setInjectedJs(`
+      window['isPushNotificationEnabled'] = false
+    `)
   }
 
   // subscribe notification
   const subscribeNotification = () => {
     registerForPushNotificationsAsync().then(token => {
-      setExpoPushToken(token)
+      initilizePushNotif()
 
       var params = {
         "fcm_token": token
@@ -92,6 +96,9 @@ const KrasmartConnect = () => {
       axios.post(URL + '/index.php?route=service/pushnotification/subscribeNotification', params).then(async response => {
         if (response.data.status == "success") {
           Alert.alert('Success!', 'Successfully enabled push notification!')
+          setTimeout(() => {
+            webViewRef.current.reload();
+          }, 500)
         } else {
           Alert.alert('Warning!', 'Something went wrong!')
         }
@@ -102,6 +109,7 @@ const KrasmartConnect = () => {
 
     notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
       setNotification(notification);
+      console.log('notification', notification)
     });
 
     responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
@@ -122,6 +130,9 @@ const KrasmartConnect = () => {
     axios.post(URL + '/index.php?route=service/pushnotification/unSubscribeNotification', params).then(async response => {
       if (response.data.status == "success") {
         Alert.alert('Success!', 'Successfully disabled push notification!')
+        setTimeout(() => {
+          webViewRef.current.reload();
+        }, 500)
       } else {
         Alert.alert('Warning!', 'Something went wrong!')
       }
@@ -143,9 +154,8 @@ const KrasmartConnect = () => {
   return (
     <WebView
     	startInLoadingState = {true} 
-    	style = {{width: Dimensions.get('window').width, height: Dimensions.get('window').height}} 
-    	// source = {{ uri: 'https://connect.krasmart.com/'}}
-    	// source = {{ uri: 'http://localhost:8080/'}}
+      ref={(ref) => webViewRef.current = ref}
+    	style = {{width: Dimensions.get('window').width, height: Dimensions.get('window').height}}
     	source = {{ uri: URL}}
     	userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36"
     	onMessage = {(event) => { checkMessage(event) }}
