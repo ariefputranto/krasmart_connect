@@ -49,7 +49,7 @@ async function registerForPushNotificationsAsync() {
 }
 
 const KrasmartConnect = () => {
-  const URL = "http://192.168.18.8:8080"
+  const URL = "http://connect.krasmart.com/"
   const [expoPushToken, setExpoPushToken] = useState('');
   const [notification, setNotification] = useState(false);
   const [injectedJs, setInjectedJs] = useState("");
