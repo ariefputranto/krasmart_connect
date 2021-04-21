@@ -1,11 +1,18 @@
 import React, { Component, useState, useEffect, useRef } from 'react';
-import { Dimensions, Alert } from 'react-native';
+import { Dimensions, Alert, ToastAndroid, Platform, AlertIOS } from 'react-native';
 import { WebView } from 'react-native-webview';
+
 import Constants from 'expo-constants';
 import * as Notifications from 'expo-notifications';
-import axios from 'axios'
 import * as SecureStore from 'expo-secure-store';
+import * as Device from 'expo-device';
+import * as ScreenOrientation from 'expo-screen-orientation';
+import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
+
+import axios from 'axios'
 import {decode} from 'html-entities';
+
 
 // configure notification
 Notifications.setNotificationHandler({
@@ -27,13 +34,13 @@ async function registerForPushNotificationsAsync() {
       finalStatus = status;
     }
     if (finalStatus !== 'granted') {
-      alert('Failed to get push token for push notification!');
+      notifyMessage('Failed to get push token for push notification!');
       return;
     }
     token = (await Notifications.getDevicePushTokenAsync()).data
     console.log(token);
   } else {
-    alert('Must use physical device for Push Notifications');
+    notifyMessage('Must use physical device for Push Notifications');
   }
 
   if (Platform.OS === 'android') {
@@ -50,18 +57,60 @@ async function registerForPushNotificationsAsync() {
 }
 
 const KrasmartConnect = () => {
-  const URL = "https://connect.krasmart.com/"
+  // const URL = "https://connect.krasmart.com/"
+  const URL = "http://192.168.18.8:8080/"
+  const listDownloadUrl = [
+    'service/claim_damage/downloadFile',
+    'service/document/download',
+    'service/order/downloadSignedContract',
+    'service/order/downloadProofOfPayment'
+  ]
+
   const [expoPushToken, setExpoPushToken] = useState('');
   const [notification, setNotification] = useState(false);
   const [injectedJs, setInjectedJs] = useState("");
+  const [injectedAfterLoadJs, setInjectedAfterLoadJs] = useState("");
   const notificationListener = useRef();
   const responseListener = useRef();
   const webViewRef = useRef();
 
   // initialize push notification token
   useEffect(() => {
+    preventOpeningNewWindow()
     initilizePushNotif()
+    lockScreenOrientation()
   }, [])
+
+  // remove target _blank from url
+  const preventOpeningNewWindow = async () => {
+    setInjectedAfterLoadJs(`
+      $('a').removeAttr('target')
+
+      // claim damage
+      $('#claimModal').off('click', '.get-upload')
+      $('#claimModal').on('click', '.get-upload', function(event) {
+        var file_name = $(this).data('file-name')
+        var url = $(this).data('url') + '&file_name=' + file_name
+        window.location.href = url
+      });
+
+      // order detail download signed contract
+      $('#download-signed-contract').off('click')
+      $('#download-signed-contract').click(function (e) {
+        e.preventDefault();
+        var url = $(this).data('url')
+        window.location.href = url
+      });
+
+      // order detail download proof of payment
+      $('#download-proof-of-payment').off('click')
+      $('#download-proof-of-payment').click(function (e) {
+        e.preventDefault();
+        var url = $(this).data('url')
+        window.location.href = url
+      });
+    `)
+  }
 
   // initialize push notif
   const initilizePushNotif = async () => {
@@ -76,6 +125,20 @@ const KrasmartConnect = () => {
     } catch(e) {
       console.log('error', e);
     } 
+  }
+
+  // lock screen orientation
+  const lockScreenOrientation = async () => {
+    try {
+      var deviceType = await Device.getDeviceTypeAsync()
+      if (deviceType == Device.DeviceType.TABLET) {
+        ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE)
+      } else {
+        ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT)
+      }
+    } catch(e) {
+      console.log(e);
+    }
   }
 
   const removeToken = async () => {
@@ -96,15 +159,15 @@ const KrasmartConnect = () => {
 
       axios.post(URL + '/index.php?route=service/pushnotification/subscribeNotification', params).then(async response => {
         if (response.data.status == "success") {
-          Alert.alert('Success!', 'Successfully enabled push notification!')
+          notifyMessage('Success!', 'Successfully enabled push notification!')
           setTimeout(() => {
             webViewRef.current.reload();
           }, 500)
         } else {
-          Alert.alert('Warning!', 'Something went wrong!')
+          notifyMessage('Warning!', 'Something went wrong!')
         }
       }, error => {
-        Alert.alert('Warning!', error.message)
+        notifyMessage('Warning!', error.message)
       })
     });
 
@@ -118,9 +181,11 @@ const KrasmartConnect = () => {
         var data = response.notification.request.trigger.remoteMessage.data
 
         // sanitize url before redirecting
-        webViewRef.current.injectJavaScript(`
-          window.location.href = "`+ decode(data.url) +`"
-        `);
+        if (data.hasOwnProperty('url')) {
+          webViewRef.current.injectJavaScript(`
+            window.location.href = "`+ decode(data.url) +`"
+          `);
+        }
       }
     });
   }
@@ -137,15 +202,15 @@ const KrasmartConnect = () => {
 
     axios.post(URL + '/index.php?route=service/pushnotification/unSubscribeNotification', params).then(async response => {
       if (response.data.status == "success") {
-        Alert.alert('Success!', 'Successfully disabled push notification!')
+        notifyMessage('Success!', 'Successfully disabled push notification!')
         setTimeout(() => {
           webViewRef.current.reload();
         }, 500)
       } else {
-        Alert.alert('Warning!', 'Something went wrong!')
+        notifyMessage('Warning!', 'Something went wrong!')
       }
     }, error => {
-      Alert.alert('Warning!', error.message)
+      notifyMessage('Warning!', error.message)
     })
   }
 
@@ -159,6 +224,111 @@ const KrasmartConnect = () => {
     }
   }
 
+  const saveFileAsyncAndroid = async (uri) => {
+    try {
+      const { status } = await MediaLibrary.requestPermissionsAsync();
+      if (status === "granted") {
+        const asset = await MediaLibrary.createAssetAsync(uri);
+        const album = await MediaLibrary.getAlbumAsync('Download');
+        if (album === null) {
+          await MediaLibrary.createAlbumAsync('Download', asset, false);
+        } else {
+          await MediaLibrary.addAssetsToAlbumAsync([asset], album, false);
+        }
+        return true
+      }
+      return false
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
+  // download file function
+  const downloadFile = async (requestUrl) => {
+    const callback = downloadProgress => {
+      const progress = downloadProgress.totalBytesWritten / downloadProgress.totalBytesExpectedToWrite;
+    };
+
+    const downloadResumable = FileSystem.createDownloadResumable(
+      requestUrl,
+      FileSystem.cacheDirectory + new Date().getTime(),
+      {},
+      callback
+    );
+
+    try {
+      notifyMessage('Downloading file!')
+      const { uri, headers } = await downloadResumable.downloadAsync();
+
+      // extract filename
+      var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+      var matches = filenameRegex.exec(headers['Content-Disposition']);
+      var filename = "";
+      if (matches != null && matches[1]) { 
+        filename = matches[1].replace(/['"]/g, '')
+        filename = filename.split(' ').join('_')
+      }
+
+      // rename file
+      console.log('file name: ', filename)
+      var newUri = FileSystem.cacheDirectory + filename
+      await FileSystem.moveAsync({
+        from: uri,
+        to: newUri
+      })
+
+      // move to download
+      if (Platform.OS === 'android') {
+        var successSaveFile = await saveFileAsyncAndroid(newUri)
+        if (successSaveFile) {
+          notifyMessage('Successfully downloaded file!')
+
+          // push notif download is complete
+          Notifications.scheduleNotificationAsync({
+            content: {
+              title: 'Download is completed!',
+              body: filename,
+            },
+            trigger: null,
+          })
+        }
+      }
+
+    } catch (e) {
+      console.error(e);
+    }
+  }
+
+  // check navigation is it on download file or not
+  const checkNavigation = (request) => {
+    var requestUrl = request.url
+    listDownloadUrl.forEach( function(element, index) {
+      if (requestUrl.indexOf(element) !== -1) {
+        downloadFile(requestUrl)
+
+        // hide loading
+        webViewRef.current.injectJavaScript(`$('#pageload').addClass('d-none')`)
+
+        // stop loading
+        webViewRef.current.stopLoading()
+        return false;
+      }
+    })
+
+    return request.url.startsWith(URL);
+  }
+
+  // toast
+  function notifyMessage(msg: string) {
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(msg, ToastAndroid.SHORT)
+    } else if (Platform.OS === 'ios') {
+      AlertIOS.alert(msg);
+    } else {
+      Alert.alert(msg);
+    }
+  }
+
   return (
     <WebView
     	startInLoadingState = {true} 
@@ -168,8 +338,10 @@ const KrasmartConnect = () => {
     	userAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_2_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.114 Safari/537.36"
     	onMessage = {(event) => { checkMessage(event) }}
       injectedJavaScriptBeforeContentLoaded = { injectedJs }
+      injectedJavaScript = { injectedAfterLoadJs }
       cacheEnabled = { false }
       cacheMode = { 'LOAD_NO_CACHE' }
+      onShouldStartLoadWithRequest={ checkNavigation }
       />
   )
 }

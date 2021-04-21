@@ -8,8 +8,8 @@
     "assetBundlePatterns": [
       "**/*"
     ],
-    "android": {
-      "useNextNotificationsApi": true,
+    "notification": {
+      "icon": "./notif_icon.png"
     }
   }
 }
