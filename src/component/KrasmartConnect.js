@@ -57,8 +57,7 @@ async function registerForPushNotificationsAsync() {
 }
 
 const KrasmartConnect = () => {
-  // const URL = "https://connect.krasmart.com/"
-  const URL = "http://192.168.18.8:8080/"
+  const URL = "https://connect.krasmart.com/"
   const listDownloadUrl = [
     'service/claim_damage/downloadFile',
     'service/document/download',
