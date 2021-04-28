@@ -57,7 +57,8 @@ async function registerForPushNotificationsAsync() {
 }
 
 const KrasmartConnect = () => {
-  const URL = "https://connect.krasmart.com/"
+  // const URL = "http://connect.krasmart.com/"
+  const URL = "https://krasmart-connect.sharedwithexpose.com"
   const listDownloadUrl = [
     'service/claim_damage/downloadFile',
     'service/document/download',
@@ -259,13 +260,25 @@ const KrasmartConnect = () => {
       notifyMessage('Downloading file!')
       const { uri, headers } = await downloadResumable.downloadAsync();
 
+      // lowercase headers
+      Object.keys(headers)
+        .reduce((destination, key) => {
+          destination[key.toLowerCase()] = headers[key]
+          return destination
+        }, {})
+
       // extract filename
       var filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
-      var matches = filenameRegex.exec(headers['Content-Disposition']);
+      var matches = filenameRegex.exec(headers['content-disposition']);
       var filename = "";
       if (matches != null && matches[1]) { 
         filename = matches[1].replace(/['"]/g, '')
         filename = filename.split(' ').join('_')
+      }
+
+      if (filename.length == 0) {
+        notifyMessage('File name is empty!')
+        return
       }
 
       // rename file
