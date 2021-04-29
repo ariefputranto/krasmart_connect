@@ -63,7 +63,8 @@ const KrasmartConnect = () => {
     'service/claim_damage/downloadFile',
     'service/document/download',
     'service/order/downloadSignedContract',
-    'service/order/downloadProofOfPayment'
+    'service/order/downloadProofOfPayment',
+    'service/export_excel/orders'
   ]
 
   const [expoPushToken, setExpoPushToken] = useState('');
@@ -316,14 +317,18 @@ const KrasmartConnect = () => {
     var requestUrl = request.url
     listDownloadUrl.forEach( function(element, index) {
       if (requestUrl.indexOf(element) !== -1) {
-        downloadFile(requestUrl)
+        // downloadFile(requestUrl)
 
         // hide loading
-        webViewRef.current.injectJavaScript(`$('#pageload').addClass('d-none')`)
+        webViewRef.current.injectJavaScript(`
+          setTimeout(() => {
+            $('#pageload').addClass('d-none')
+          }, 500)
+        `)
 
         // stop loading
-        webViewRef.current.stopLoading()
-        return false;
+        // webViewRef.current.stopLoading()
+        // return false;
       }
     })
 
