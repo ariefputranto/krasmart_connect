@@ -9,6 +9,7 @@ import * as Device from 'expo-device';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import * as FileSystem from 'expo-file-system';
 import * as MediaLibrary from 'expo-media-library';
+import * as SplashScreen from 'expo-splash-screen';
 
 import axios from 'axios'
 import {decode} from 'html-entities';
@@ -57,7 +58,7 @@ async function registerForPushNotificationsAsync() {
 }
 
 const KrasmartConnect = () => {
-  // const URL = "http://connect.krasmart.com/"
+  // const URL = "https://connect.krasmart.com/"
   const URL = "https://krasmart-connect.sharedwithexpose.com"
   const listDownloadUrl = [
     'service/claim_damage/downloadFile',
@@ -77,10 +78,30 @@ const KrasmartConnect = () => {
 
   // initialize push notification token
   useEffect(() => {
+    showSplashScreen()
     preventOpeningNewWindow()
     initilizePushNotif()
     lockScreenOrientation()
   }, [])
+
+  // show splash screen
+  const showSplashScreen = async () => {
+    try {
+      // Keep the splash screen visible while we fetch resources
+      await SplashScreen.preventAutoHideAsync();
+    } catch (e) {
+      console.warn(e);
+    }
+  }
+
+  // hide splash screen
+  const hideSplashScreen = async () => {
+    try {
+      await SplashScreen.hideAsync();
+    } catch (e) {
+      console.warn(e);
+    }
+  }
 
   // remove target _blank from url
   const preventOpeningNewWindow = async () => {
@@ -359,6 +380,7 @@ const KrasmartConnect = () => {
       cacheEnabled = { false }
       cacheMode = { 'LOAD_NO_CACHE' }
       onShouldStartLoadWithRequest={ checkNavigation }
+      onLoadEnd={ hideSplashScreen }
       />
   )
 }
