@@ -1,7 +1,7 @@
 import * as SplashScreen from 'expo-splash-screen'
 
 // show splash screen
-const showSplashScreen = async () => {
+const manualSplashScreen = async () => {
   try {
     // Keep the splash screen visible while we fetch resources
     await SplashScreen.preventAutoHideAsync()
@@ -19,4 +19,4 @@ const hideSplashScreen = async () => {
   }
 }
 
-export { showSplashScreen, hideSplashScreen }
+export { manualSplashScreen, hideSplashScreen }

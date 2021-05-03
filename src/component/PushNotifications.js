@@ -57,7 +57,7 @@ const PushNotification = () => {
   const [expoPushToken, setExpoPushToken] = useState('')
   const [notification, setNotification] = useState(false)
   const notificationListener = useRef()
-  const responseListener = useRef()
+  // const responseListener = useRef()
 
   // initialize push notif
   const initilizePushNotif = async (onNotificationCallback) => {
@@ -89,17 +89,17 @@ const PushNotification = () => {
       setNotification(notification)
     })
 
-    responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
-      // add on click redirect into link
-      if (Platform.OS === 'android') {
-        var data = response.notification.request.trigger.remoteMessage.data
+    // responseListener.current = Notifications.addNotificationResponseReceivedListener(response => {
+    //   // add on click redirect into link
+    //   if (Platform.OS === 'android') {
+    //     var data = response.notification.request.trigger.remoteMessage.data
 
-        // sanitize url before redirecting
-        if (data.hasOwnProperty('url')) {
-          onNotificationCallback(data)
-        }
-      }
-    })
+    //     // sanitize url before redirecting
+    //     if (data.hasOwnProperty('url')) {
+    //       onNotificationCallback(data)
+    //     }
+    //   }
+    // })
   }
 
   // subscribe notification
@@ -131,7 +131,7 @@ const PushNotification = () => {
   // un-subscribe notification
   const unSubscribeNotification = (successCallback) => {
     Notifications.removeNotificationSubscription(notificationListener)
-    Notifications.removeNotificationSubscription(responseListener)
+    // Notifications.removeNotificationSubscription(responseListener)
     removeToken()
 
     var params = {

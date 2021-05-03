@@ -3,7 +3,9 @@ import { Dimensions, Alert, ToastAndroid, Platform, AlertIOS } from 'react-nativ
 import { WebView } from 'react-native-webview'
 import { decode } from 'html-entities'
 
-import { showSplashScreen, hideSplashScreen } from './SplashScreen'
+import * as Notifications from 'expo-notifications'
+
+import { manualSplashScreen, hideSplashScreen } from './SplashScreen'
 import { requestCameraPermission } from './Permissions'
 import { PushNotification } from './PushNotifications'
 import { lockScreenOrientation } from './LockScreenOrientation'
@@ -14,22 +16,36 @@ import { StoreContext } from '../store/Store';
 
 
 const KrasmartConnect = () => {
+  const lastNotificationResponse = Notifications.useLastNotificationResponse()
   const { URL, listDownloadUrl, injectedJs, injectedAfterLoadJs, setInjectedAfterLoadJs } = useContext(StoreContext)
   const { initilizePushNotif, subscribeNotification, unSubscribeNotification } = PushNotification()
   const { preventOpeningNewWindow } = DownloadFiles()
   const webViewRef = useRef()
 
-  // initialize push notification token
+  // initialize push notif get last notif
+  useEffect(() => {
+    console.log('lastNotificationResponse', lastNotificationResponse)
+    if (
+      lastNotificationResponse &&
+      lastNotificationResponse.notification.request.trigger.remoteMessage.data &&
+      lastNotificationResponse.notification.request.trigger.remoteMessage.data.hasOwnProperty('url') &&
+      lastNotificationResponse.actionIdentifier === Notifications.DEFAULT_ACTION_IDENTIFIER
+    ) {
+      onNotificationCallback(lastNotificationResponse.notification.request.trigger.remoteMessage.data)
+    }
+  }, [lastNotificationResponse]);
+
+  // initialize component
   useEffect(() => {
     requestCameraPermission()
-    showSplashScreen()
+    manualSplashScreen()
     preventOpeningNewWindow()
-    initilizePushNotif(onNotificationCallback)
+    initilizePushNotif()
     lockScreenOrientation()
   }, [])
 
   const onNotificationCallback = (notificationData) => {
-    console.log(notificationData)
+    webViewRef.current.stopLoading()
     webViewRef.current.injectJavaScript(`
       window.location.href = "`+ decode(notificationData.url) +`"
     `)
@@ -41,7 +57,7 @@ const KrasmartConnect = () => {
     if (data.status == "subscribe") {
       subscribeNotification(() => {
         webViewRef.current.reload()
-      }, onNotificationCallback)
+      })
     } else {
       unSubscribeNotification(() => {
         webViewRef.current.reload()
@@ -72,6 +88,19 @@ const KrasmartConnect = () => {
     return request.url.startsWith(URL)
   }
 
+  const loadStartEvent = () => {
+    webViewRef.current.injectJavaScript(`
+      $('#pageload').removeClass('d-none')
+    `)
+  }
+
+  const loadEndEvent = () => {
+    hideSplashScreen()
+    webViewRef.current.injectJavaScript(`
+      $('#pageload').addClass('d-none')
+    `)
+  }
+
   return (
     <WebView
     	startInLoadingState = {true} 
@@ -85,7 +114,8 @@ const KrasmartConnect = () => {
       cacheEnabled = { false }
       cacheMode = { 'LOAD_NO_CACHE' }
       onShouldStartLoadWithRequest={ checkNavigation }
-      onLoadEnd={ hideSplashScreen }
+      onLoadStart={ loadStartEvent }
+      onLoadEnd={ loadEndEvent }
       />
   )
 }
