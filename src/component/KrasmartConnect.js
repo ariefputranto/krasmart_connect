@@ -33,7 +33,6 @@ const KrasmartConnect = () => {
 
   // initialize push notif get last notif
   useEffect(() => {
-    console.log('lastNotificationResponse', lastNotificationResponse)
     if (
       lastNotificationResponse &&
       lastNotificationResponse.notification.request.trigger.remoteMessage.data &&
