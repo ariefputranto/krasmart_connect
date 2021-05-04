@@ -3,7 +3,8 @@ import React, { createContext, useState } from 'react';
 export const StoreContext = createContext(null)
 export const StoreProvider = ({children}) => {
   // const URL = "https://connect.krasmart.com/"
-  const URL = "https://krasmart-connect.sharedwithexpose.com"
+  // const URL = "https://krasmart-connect.sharedwithexpose.com"
+  const URL = "http://192.168.18.8:8080"
 
   const listDownloadUrl = [
     'service/claim_damage/downloadFile',

@@ -16,11 +16,20 @@ import { StoreContext } from '../store/Store';
 
 
 const KrasmartConnect = () => {
-  const lastNotificationResponse = Notifications.useLastNotificationResponse()
   const { URL, listDownloadUrl, injectedJs, injectedAfterLoadJs, setInjectedAfterLoadJs } = useContext(StoreContext)
   const { initilizePushNotif, subscribeNotification, unSubscribeNotification } = PushNotification()
   const { preventOpeningNewWindow } = DownloadFiles()
   const webViewRef = useRef()
+  const lastNotificationResponse = Notifications.useLastNotificationResponse();
+
+  // initialize component
+  useEffect(() => {
+    requestCameraPermission()
+    manualSplashScreen()
+    preventOpeningNewWindow()
+    initilizePushNotif()
+    lockScreenOrientation()
+  }, [])
 
   // initialize push notif get last notif
   useEffect(() => {
@@ -34,15 +43,6 @@ const KrasmartConnect = () => {
       onNotificationCallback(lastNotificationResponse.notification.request.trigger.remoteMessage.data)
     }
   }, [lastNotificationResponse]);
-
-  // initialize component
-  useEffect(() => {
-    requestCameraPermission()
-    manualSplashScreen()
-    preventOpeningNewWindow()
-    initilizePushNotif()
-    lockScreenOrientation()
-  }, [])
 
   const onNotificationCallback = (notificationData) => {
     webViewRef.current.stopLoading()
