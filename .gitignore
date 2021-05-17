@@ -54,3 +54,6 @@ buck-out/
 web-build/
 
 yarn.lock
+appium_test/target
+appium_test/target/*
+appium_test/*.png
