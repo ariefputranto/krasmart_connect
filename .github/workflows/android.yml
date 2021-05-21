@@ -42,9 +42,8 @@ jobs:
 
       - name: Upload Test to App Center
         uses: joabalea/App-Center-action@v1.0.2
-        working-directory: appium_test
         with:
-          command: appcenter test run appium --app "ariefputranto0-gmail.com/Krasmart-Connect" --devices "ariefputranto0-gmail.com/test-device" --app-path "app-release.apk" --test-series "dev" --locale "en_US" --build-dir target/upload
+          command: cd appium_test && appcenter test run appium --app "ariefputranto0-gmail.com/Krasmart-Connect" --devices "ariefputranto0-gmail.com/test-device" --app-path "app-release.apk" --test-series "dev" --locale "en_US" --build-dir target/upload
           token: ${{ secrets.APP_CENTER_TOKEN }}
 
       - name: Upload Android APK
