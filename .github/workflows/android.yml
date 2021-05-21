@@ -1,0 +1,34 @@
+name: Android
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Use Node.js v15
+        uses: actions/setup-node@v1
+        with:
+          node-version: 15.x
+
+      - name: Install Package
+        run: npm ci
+
+      - name: Build Android apk
+        run: ./gradlew assembleRelease
+        working-directory: android
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: krasmart-connect-apk
+          path: '**/*.apk'
