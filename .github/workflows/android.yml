@@ -16,18 +16,21 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Use Node.js v15
+      - name: Install Node.js v15
         uses: actions/setup-node@v1
         with:
           node-version: 15.x
 
-      - name: set up JDK 1.8
+      - name: Install JDK 1.8
         uses: actions/setup-java@v1
         with:
           java-version: 1.8
 
-      - name: Install Package
+      - name: Install NPM Package
         run: npm ci
+
+      - name: Install Appcenter
+        run: npm install -g appcenter-cli
 
       - name: Build Android apk
         run: ./gradlew assembleRelease
@@ -41,10 +44,8 @@ jobs:
         working-directory: appium_test
 
       - name: Upload Test to App Center
-        uses: joabalea/App-Center-action@v1.0.2
-        with:
-          command: cd appium_test && appcenter test run appium --app "ariefputranto0-gmail.com/Krasmart-Connect" --devices "ariefputranto0-gmail.com/test-device" --app-path "app-release.apk" --test-series "dev" --locale "en_US" --build-dir target/upload
-          token: ${{ secrets.APP_CENTER_TOKEN }}
+        run: appcenter test run appium --app "ariefputranto0-gmail.com/Krasmart-Connect" --devices "ariefputranto0-gmail.com/test-device" --app-path "app-release.apk" --test-series "dev" --locale "en_US" --build-dir target/upload --token ${{ secrets.APP_CENTER_TOKEN }}
+        working-directory: appium_test
 
       - name: Upload Android APK
         uses: actions/upload-artifact@v2
